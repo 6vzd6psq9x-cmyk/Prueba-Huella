@@ -1,0 +1,17 @@
+# netlify.toml
+# Este archivo configura los ajustes de despliegue para Netlify.
+
+[build]
+  # No se necesita comando de construcción ya que es HTML estático.
+  command = ""
+  
+  # Directorio a publicar: la raíz del repositorio.
+  publish = "."
+
+# Regla de Redireccionamiento:
+# Asegura que cuando alguien visite la raíz del sitio (/)
+# se le sirva nuestro archivo HTML principal.
+[[redirects]]
+  from = "/"
+  to = "/carbon_footprint_calculator.html"
+  status = 200

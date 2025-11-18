@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Huella de Carbono</title>
+    <!-- Incluimos Tailwind CSS para el diseño rápido y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuramos la fuente Inter y un color de fondo agradable */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Estilos personalizados para la tarjeta principal */
+        .card-container {
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        /* Estilo para los campos de entrada */
+        input[type="number"] {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #38a169; /* Verde de Tailwind */
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- Contenedor principal de la aplicación -->
+    <div class="card-container bg-white p-8 rounded-xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">🌳 EcoApp: Huella CO₂</h1>
+            <p class="text-gray-500 mt-2">Calcula tu impacto ambiental mensual (kg de CO₂).</p>
+        </header>
+
+        <!-- Formulario de entradas -->
+        <form id="footprintForm" class="space-y-4">
+            <!-- Sección de Transporte -->
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                <label for="carDistance" class="block text-sm font-medium text-green-700 mb-2">🚗 Distancia recorrida en auto (km/mes)</label>
+                <input type="number" id="carDistance" value="100" min="0" required>
+            </div>
+
+            <!-- Sección de Electricidad -->
+            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <label for="electricityKwh" class="block text-sm font-medium text-blue-700 mb-2">💡 Consumo eléctrico (kWh/mes)</label>
+                <input type="number" id="electricityKwh" value="150" min="0" required>
+            </div>
+
+            <!-- Sección de Carne -->
+            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                <label for="meatServings" class="block text-sm font-medium text-red-700 mb-2">🥩 Porciones de carne roja (por semana)</label>
+                <input type="number" id="meatServings" value="2" min="0" required>
+            </div>
+
+            <!-- Botón de Cálculo -->
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-300 transform hover:scale-[1.01] shadow-md">
+                Calcular Huella
+            </button>
+        </form>
+
+        <!-- Sección de Resultados -->
+        <div id="resultSection" class="mt-8 p-6 bg-green-100 rounded-xl text-center hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Tu Huella de Carbono Estimada:</h2>
+            <p class="text-4xl font-extrabold text-green-700" id="resultDisplay">0 kg CO₂/mes</p>
+            <p class="mt-4 text-sm text-gray-600">
+                Esta es una estimación. El valor se basa en factores de emisión promedio.
+            </p>
+        </div>
+
+        <!-- Mensaje de sugerencia -->
+        <div id="suggestionBox" class="mt-4 p-4 bg-yellow-100 rounded-lg border border-yellow-300 text-sm text-yellow-800 hidden">
+            <p class="font-bold">¡Tip Ecológico!</p>
+            <p id="suggestionText">Usa más el transporte público o la bicicleta para reducir tu huella de carbono por transporte.</p>
+        </div>
+    </div>
+
+    <!-- Script de JavaScript para la lógica de la aplicación -->
+    <script>
+        // FACTORES DE EMISIÓN (Valores simplificados para el ejercicio)
+        const EMISSION_FACTORS = {
+            CAR_PER_KM: 0.2,
+            ELECTRICITY_PER_KWH: 0.4,
+            MEAT_PER_PORTION_MONTH: 5 * 4 
+        };
+
+        const form = document.getElementById('footprintForm');
+        const resultSection = document.getElementById('resultSection');
+        const resultDisplay = document.getElementById('resultDisplay');
+        const suggestionBox = document.getElementById('suggestionBox');
+        const suggestionText = document.getElementById('suggestionText');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            calculateAndDisplayFootprint();
+        });
+
+        function calculateAndDisplayFootprint() {
+            try {
+                const carDistance = parseFloat(document.getElementById('carDistance').value) || 0;
+                const electricityKwh = parseFloat(document.getElementById('electricityKwh').value) || 0;
+                const meatServings = parseFloat(document.getElementById('meatServings').value) || 0;
+
+                // CÁLCULOS
+                const carFootprint = carDistance * EMISSION_FACTORS.CAR_PER_KM;
+                const electricityFootprint = electricityKwh * EMISSION_FACTORS.ELECTRICITY_PER_KWH;
+                const meatFootprint = meatServings * EMISSION_FACTORS.MEAT_PER_PORTION_MONTH;
+                const totalFootprint = carFootprint + electricityFootprint + meatFootprint;
+
+                // MOSTRAR RESULTADO
+                const formattedResult = totalFootprint.toFixed(1); 
+                resultDisplay.textContent = `${formattedResult} kg CO₂/mes`;
+                resultSection.classList.remove('hidden'); 
+
+                // MOSTRAR SUGERENCIA
+                displaySuggestion(carFootprint, electricityFootprint, meatFootprint);
+
+            } catch (error) {
+                console.error("Error en el cálculo:", error);
+                resultDisplay.textContent = "Error. Revisa tus números.";
+                resultSection.classList.remove('hidden');
+            }
+        }
+
+        function displaySuggestion(car, electricity, meat) {
+            let suggestion = "";
+            let maxFootprint = Math.max(car, electricity, meat);
+            
+            // Restablecer clases para el color por defecto (amarillo)
+            suggestionBox.classList.remove('bg-red-100', 'border-red-300', 'text-red-800', 'bg-blue-100', 'border-blue-300', 'text-blue-800', 'bg-green-100', 'border-green-300', 'text-green-800');
+            suggestionBox.classList.add('bg-yellow-100', 'border-yellow-300', 'text-yellow-800');
+
+            if (maxFootprint === car && car > 0) {
+                suggestion = "Tu transporte es el mayor emisor. Considera usar más el transporte público o la bicicleta.";
+                suggestionBox.classList.add('bg-green-100', 'border-green-300', 'text-green-800'); // Usamos verde para transporte terrestre
+            } else if (maxFootprint === electricity && electricity > 0) {
+                suggestion = "Tu consumo eléctrico es alto. ¡Cambia a bombillas LED y desconecta los aparatos que no uses!";
+                suggestionBox.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-800'); // Usamos azul para electricidad
+            } else if (maxFootprint === meat && meat > 0) {
+                suggestion = "El consumo de carne es tu mayor área. Intenta un día vegetariano a la semana. ¡El planeta lo agradecerá!";
+                suggestionBox.classList.add('bg-red-100', 'border-red-300', 'text-red-800'); // Usamos rojo para alimentación
+            } else {
+                suggestion = "¡Excelente! Estás en buen camino. Sigue buscando maneras de reducir aún más tu huella.";
+            }
+
+            suggestionText.textContent = suggestion;
+            suggestionBox.classList.remove('hidden');
+        }
+
+        window.onload = function() {
+            calculateAndDisplayFootprint();
+        };
+
+    </script>
+</body>
+</html>
